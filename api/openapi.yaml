@@ -1,0 +1,130 @@
+openapi: 3.0.1
+info:
+  title: StromGedacht API
+  termsOfService: "https://www.stromgedacht.de/api-info/nutzungsbedingungen"
+  contact:
+    url: "https://www.stromgedacht.de"
+    email: stromgedacht@transnetbw.de
+  version: v1
+paths:
+  /v1/now:
+    description: |
+      Retrieval of the StromGedacht status in the TransnetBW control area 
+      for the current time at a specified location (postal code).
+    get:
+      operationId: getNow
+      tags:
+        - RegionStates
+      summary: Returns current RegionState
+      parameters:
+        - $ref: "#/components/parameters/ZipCode"
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegionStateNowViewModel"
+  /v1/states:
+    get:
+      operationId: getStates
+      description: |
+        Retrieval of the StromGedacht statuses in the TransnetBW control area for a specified 
+        time period at a specified location (zip code), whereby the status can be retrieved 
+        a maximum of 4 days into the past and a maximum of 2 days into the future.
+      tags:
+        - RegionStates
+      summary: Returns requested region states
+      parameters:
+        - $ref: "#/components/parameters/ZipCode"
+        - $ref: "#/components/parameters/FromDateTime"
+        - $ref: "#/components/parameters/ToDateTime"
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegionStateRangeViewModel"
+        "400":
+          description: Missing query data or wrong date format
+components:
+  parameters:
+    ZipCode:
+      name: zip
+      in: query
+      description: The zip code of the region where the data will be used
+      required: true
+      style: form
+      schema:
+        type: string
+    FromDateTime:
+      name: from
+      in: query
+      description: |
+        Data will be returned from this datetime on. 
+        Only up to 4 days into the past can be requested
+      required: true
+      style: form
+      schema:
+        type: string
+        format: date-time
+      example: "2023-05-02T00:00:00+02:00"
+    ToDateTime:
+      name: to
+      in: query
+      description: |
+        Data will be returned to this datetime 
+        Only up to 2 days into the future can be requested
+      required: true
+      style: form
+      schema:
+        type: string
+        format: date-time
+      example: "2023-05-08T23:59:59+02:00"
+  schemas:
+    RegionState:
+      type: integer
+      format: int32
+      enum: [1, 2, 3, 4]
+      x-enum-varnames: [green, yellow, orange, red]
+      description: |
+        Possible values:
+          1 = green (normal operation - you do not need to do anything else)
+          2 = yellow (bring consumption forward - use electricity now)
+          3 = orange (reduce consumption to save costs and CO2)
+          4 = red (reduce consumption to prevent power shortage)
+    RegionStateNowViewModel:
+      type: object
+      properties:
+        state:
+          $ref: "#/components/schemas/RegionState"
+      additionalProperties: false
+      required:
+        - state
+    RegionStateRangeViewModel:
+      type: object
+      properties:
+        states:
+          type: array
+          items:
+            $ref: "#/components/schemas/RegionStateViewModel"
+      additionalProperties: false
+      required:
+        - states
+    RegionStateViewModel:
+      type: object
+      properties:
+        from:
+          type: string
+          format: date-time
+        to:
+          type: string
+          format: date-time
+        state:
+          $ref: "#/components/schemas/RegionState"
+      additionalProperties: false
+      required:
+        - from
+        - to
+        - state
