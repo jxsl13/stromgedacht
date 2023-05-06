@@ -16,6 +16,7 @@ type clientOptions struct {
 	timeFormat    string
 	clientContext context.Context
 	zipCodeRegex  *regexp.Regexp
+	userAgent     string
 }
 
 type Option func(*clientOptions) error
@@ -71,6 +72,14 @@ func WithZipCodeRegex(regex string) Option {
 func WithContext(ctx context.Context) Option {
 	return func(co *clientOptions) error {
 		co.clientContext = ctx
+		return nil
+	}
+}
+
+// WithUserAgent sets the User-Agent for every client request
+func WithUserAgent(userAgent string) Option {
+	return func(co *clientOptions) error {
+		co.userAgent = userAgent
 		return nil
 	}
 }

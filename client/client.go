@@ -18,6 +18,9 @@ var (
 
 	// DefaultZipCodeRegex is used to validate German zip codes
 	DefaultZipCodeRegex = regexp.MustCompile(`^((?:0[1-46-9]\d{3})|(?:[1-357-9]\d{4})|(?:[4][0-24-9]\d{3})|(?:[6][013-9]\d{3}))$`)
+
+	// DefaultUserAgent is the default user agent of this library
+	DefaultUserAgent = "github.com/jxsl13/stromgedacht"
 )
 
 // Client which conforms to the OpenAPI3 specification for this service.
@@ -36,6 +39,7 @@ func New(opts ...Option) (*Client, error) {
 		timeFormat:    DefaultDateTimeFormat,
 		clientContext: context.Background(),
 		zipCodeRegex:  DefaultZipCodeRegex,
+		userAgent:     DefaultUserAgent,
 	}
 	// mutate client and add all optional params
 	for _, o := range opts {
@@ -45,7 +49,9 @@ func New(opts ...Option) (*Client, error) {
 	}
 
 	client := &Client{
-		client:       resty.NewWithClient(options.httpClient).SetBaseURL(options.apiUrl),
+		client: resty.NewWithClient(options.httpClient).
+			SetBaseURL(options.apiUrl).
+			SetHeader("User-Agent", options.userAgent),
 		timeFormat:   options.timeFormat,
 		zipCodeRegex: options.zipCodeRegex,
 	}
