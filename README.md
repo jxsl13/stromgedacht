@@ -16,23 +16,25 @@ go get github.com/jxsl13/stromgedacht@latest
 
 
 ```go
+package main
+
 import (
-    "github.com/jxsl13/stromgedacht/client"
-    "encoding/json"
-    "fmt"
+	"encoding/json"
+	"fmt"
+
+	"github.com/jxsl13/stromgedacht/client"
 )
 
-
 func main() {
-    c, _ := client.New()
+	c, _ := client.New()
 
-    state, err := c.GetNow()
-    if err != nil {
-        panic(err)
-    }
+	state, err := c.GetNow("68309") // Mannheim
+	if err != nil {
+		panic(err)
+	}
 
-    data, _ := json.MarshalIndent(state, "", " ")
-    fmt.Println(string(data))
+	data, _ := json.MarshalIndent(state, "", " ")
+	fmt.Println(string(data))
 }
 
 ```
