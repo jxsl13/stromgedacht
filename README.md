@@ -6,7 +6,7 @@ This is a Go client implementation for the https://www.stromgedacht.de/api-info/
 I am in no way or form associated with stromgedacht.de
 
 
-## fetch te dependency
+## fetch the dependency
 ```shell
 go get github.com/jxsl13/stromgedacht@latest
 ```
