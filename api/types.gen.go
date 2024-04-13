@@ -4,78 +4,266 @@
 package api
 
 import (
+	"encoding/json"
+	"fmt"
 	"time"
 )
 
 // Defines values for RegionState.
 const (
-	Green  RegionState = 1
-	Orange RegionState = 3
-	Red    RegionState = 4
-	Yellow RegionState = 2
+	Green      RegionState = 1
+	Orange     RegionState = 3
+	Red        RegionState = 4
+	SuperGreen RegionState = -1
+	Yellow     RegionState = 2
 )
 
-// RegionState Possible values:
-//
-//	1 = green (normal operation - you do not need to do anything else)
-//	2 = yellow (bring consumption forward - use electricity now)
-//	3 = orange (reduce consumption to save costs and CO2)
-//	4 = red (reduce consumption to prevent power shortage)
+// ForecastPointInTimeViewModel defines model for ForecastPointInTimeViewModel.
+type ForecastPointInTimeViewModel struct {
+	DateTime *time.Time `json:"dateTime,omitempty"`
+	Value    *float64   `json:"value,omitempty"`
+}
+
+// ForecastViewModel defines model for ForecastViewModel.
+type ForecastViewModel struct {
+	Load                *[]ForecastPointInTimeViewModel `json:"load"`
+	RenewableEnergy     *[]ForecastPointInTimeViewModel `json:"renewableEnergy"`
+	ResidualLoad        *[]ForecastPointInTimeViewModel `json:"residualLoad"`
+	SuperGreenThreshold *[]ForecastPointInTimeViewModel `json:"superGreenThreshold"`
+}
+
+// ProblemDetails defines model for ProblemDetails.
+type ProblemDetails struct {
+	Detail               *string                `json:"detail"`
+	Instance             *string                `json:"instance"`
+	Status               *int32                 `json:"status"`
+	Title                *string                `json:"title"`
+	Type                 *string                `json:"type"`
+	AdditionalProperties map[string]interface{} `json:"-"`
+}
+
+// RegionState <p>Possible values:</p>
+// <ul>
+// <li><b>1</b> = green</li>
+// <li><b>2</b> = yellow</li>
+// <li><b>3</b> = orange</li>
+// <li><b>4</b> = red</li>
+// <li><b>-1</b> = superGreen</li>
+// </ul>
 type RegionState int32
 
 // RegionStateNowViewModel defines model for RegionStateNowViewModel.
 type RegionStateNowViewModel struct {
-	// State Possible values:
-	//   1 = green (normal operation - you do not need to do anything else)
-	//   2 = yellow (bring consumption forward - use electricity now)
-	//   3 = orange (reduce consumption to save costs and CO2)
-	//   4 = red (reduce consumption to prevent power shortage)
-	State RegionState `json:"state"`
+	// State <p>Possible values:</p>
+	// <ul>
+	// <li><b>1</b> = green</li>
+	// <li><b>2</b> = yellow</li>
+	// <li><b>3</b> = orange</li>
+	// <li><b>4</b> = red</li>
+	// <li><b>-1</b> = superGreen</li>
+	// </ul>
+	State *RegionState `json:"state,omitempty"`
 }
 
 // RegionStateRangeViewModel defines model for RegionStateRangeViewModel.
 type RegionStateRangeViewModel struct {
-	States []RegionStateViewModel `json:"states"`
+	States *[]RegionStateViewModel `json:"states"`
 }
 
 // RegionStateViewModel defines model for RegionStateViewModel.
 type RegionStateViewModel struct {
-	From time.Time `json:"from"`
+	From *time.Time `json:"from,omitempty"`
 
-	// State Possible values:
-	//   1 = green (normal operation - you do not need to do anything else)
-	//   2 = yellow (bring consumption forward - use electricity now)
-	//   3 = orange (reduce consumption to save costs and CO2)
-	//   4 = red (reduce consumption to prevent power shortage)
-	State RegionState `json:"state"`
-	To    time.Time   `json:"to"`
+	// State <p>Possible values:</p>
+	// <ul>
+	// <li><b>1</b> = green</li>
+	// <li><b>2</b> = yellow</li>
+	// <li><b>3</b> = orange</li>
+	// <li><b>4</b> = red</li>
+	// <li><b>-1</b> = superGreen</li>
+	// </ul>
+	State *RegionState `json:"state,omitempty"`
+	To    *time.Time   `json:"to,omitempty"`
 }
 
-// FromDateTime defines model for FromDateTime.
-type FromDateTime = time.Time
-
-// ToDateTime defines model for ToDateTime.
-type ToDateTime = time.Time
-
-// ZipCode defines model for ZipCode.
-type ZipCode = string
-
-// GetNowParams defines parameters for GetNow.
-type GetNowParams struct {
+// GetV1ForecastParams defines parameters for GetV1Forecast.
+type GetV1ForecastParams struct {
 	// Zip The zip code of the region where the data will be used
-	Zip ZipCode `form:"zip" json:"zip"`
+	Zip string `form:"zip" json:"zip"`
+
+	// From Data will be returned from this datetime on | This field is optional. By providing no date it uses the date 7 days ago | Only up to 7 days into the past can be requested
+	From *time.Time `form:"from,omitempty" json:"from,omitempty"`
+
+	// To Data will be returned to this datetime | This field is optional. By providing no date it uses the date 1 day in the future | Only up to 1 day into the future can be requested
+	To *time.Time `form:"to,omitempty" json:"to,omitempty"`
+
+	// XB2BID Identifier of the business partner (B2B-ID) (Optional)
+	XB2BID *string `json:"X-B2B-ID,omitempty"`
 }
 
-// GetStatesParams defines parameters for GetStates.
-type GetStatesParams struct {
+// GetV1NowParams defines parameters for GetV1Now.
+type GetV1NowParams struct {
 	// Zip The zip code of the region where the data will be used
-	Zip ZipCode `form:"zip" json:"zip"`
+	Zip string `form:"zip" json:"zip"`
 
-	// From Data will be returned from this datetime on.
-	// Only up to 4 days into the past can be requested
-	From FromDateTime `form:"from" json:"from"`
+	// XB2BID Identifier of the business partner (B2B-ID) (Optional)
+	XB2BID *string `json:"X-B2B-ID,omitempty"`
+}
 
-	// To Data will be returned to this datetime
-	// Only up to 2 days into the future can be requested
-	To ToDateTime `form:"to" json:"to"`
+// GetV1StatesParams defines parameters for GetV1States.
+type GetV1StatesParams struct {
+	// Zip The zip code of the region where the data will be used
+	Zip string `form:"zip" json:"zip"`
+
+	// From Data will be returned from this datetime on | Only up to 4 days into the past can be requested
+	From time.Time `form:"from" json:"from"`
+
+	// To Data will be returned to this datetime | Only up to 2 days into the future can be requested
+	To time.Time `form:"to" json:"to"`
+
+	// XB2BID Identifier of the business partner (B2B-ID) (Optional)
+	XB2BID *string `json:"X-B2B-ID,omitempty"`
+}
+
+// GetV1StatesRelativeParams defines parameters for GetV1StatesRelative.
+type GetV1StatesRelativeParams struct {
+	// Zip The zip code of the region where the data will be used
+	Zip string `form:"zip" json:"zip"`
+
+	// HoursInFuture Data will be returned to the provided amount of hours in future | Only up to 2 days into the future can be requested
+	HoursInFuture int32 `form:"hoursInFuture" json:"hoursInFuture"`
+
+	// HoursInPast Data will be returned from the provided amount of hours in past | This field is optional | Only up to 4 days into the past can be requested
+	HoursInPast *int32 `form:"hoursInPast,omitempty" json:"hoursInPast,omitempty"`
+
+	// XB2BID Identifier of the business partner (B2B-ID) (Optional)
+	XB2BID *string `json:"X-B2B-ID,omitempty"`
+}
+
+// Getter for additional properties for ProblemDetails. Returns the specified
+// element and whether it was found
+func (a ProblemDetails) Get(fieldName string) (value interface{}, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for ProblemDetails
+func (a *ProblemDetails) Set(fieldName string, value interface{}) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]interface{})
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for ProblemDetails to handle AdditionalProperties
+func (a *ProblemDetails) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if raw, found := object["detail"]; found {
+		err = json.Unmarshal(raw, &a.Detail)
+		if err != nil {
+			return fmt.Errorf("error reading 'detail': %w", err)
+		}
+		delete(object, "detail")
+	}
+
+	if raw, found := object["instance"]; found {
+		err = json.Unmarshal(raw, &a.Instance)
+		if err != nil {
+			return fmt.Errorf("error reading 'instance': %w", err)
+		}
+		delete(object, "instance")
+	}
+
+	if raw, found := object["status"]; found {
+		err = json.Unmarshal(raw, &a.Status)
+		if err != nil {
+			return fmt.Errorf("error reading 'status': %w", err)
+		}
+		delete(object, "status")
+	}
+
+	if raw, found := object["title"]; found {
+		err = json.Unmarshal(raw, &a.Title)
+		if err != nil {
+			return fmt.Errorf("error reading 'title': %w", err)
+		}
+		delete(object, "title")
+	}
+
+	if raw, found := object["type"]; found {
+		err = json.Unmarshal(raw, &a.Type)
+		if err != nil {
+			return fmt.Errorf("error reading 'type': %w", err)
+		}
+		delete(object, "type")
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]interface{})
+		for fieldName, fieldBuf := range object {
+			var fieldVal interface{}
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshalling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for ProblemDetails to handle AdditionalProperties
+func (a ProblemDetails) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	if a.Detail != nil {
+		object["detail"], err = json.Marshal(a.Detail)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'detail': %w", err)
+		}
+	}
+
+	if a.Instance != nil {
+		object["instance"], err = json.Marshal(a.Instance)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'instance': %w", err)
+		}
+	}
+
+	if a.Status != nil {
+		object["status"], err = json.Marshal(a.Status)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'status': %w", err)
+		}
+	}
+
+	if a.Title != nil {
+		object["title"], err = json.Marshal(a.Title)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'title': %w", err)
+		}
+	}
+
+	if a.Type != nil {
+		object["type"], err = json.Marshal(a.Type)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'type': %w", err)
+		}
+	}
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
 }

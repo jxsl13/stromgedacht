@@ -1,117 +1,267 @@
 openapi: 3.0.1
 info:
   title: StromGedacht API
-  termsOfService: "https://www.stromgedacht.de/api-info/nutzungsbedingungen"
+  termsOfService: https://www.stromgedacht.de/api-info/nutzungsbedingungen
   contact:
-    url: "https://www.stromgedacht.de"
+    url: https://www.stromgedacht.de
     email: stromgedacht@transnetbw.de
   version: v1
 paths:
-  /v1/now:
-    description: |
-      Retrieval of the StromGedacht status in the TransnetBW control area 
-      for the current time at a specified location (postal code).
+  /v1/forecast:
     get:
-      operationId: getNow
+      tags:
+        - RegionForecast
+      summary: Returns requested forecast values for provided zip
+      parameters:
+        - name: zip
+          in: query
+          description: The zip code of the region where the data will be used
+          required: true
+          style: form
+          schema:
+            type: string
+        - name: from
+          in: query
+          description: Data will be returned from this datetime on | This field is optional. By providing no date it uses the date 7 days ago | Only up to 7 days into the past can be requested
+          style: form
+          schema:
+            type: string
+            format: date-time
+          example: '2023-09-12'
+        - name: to
+          in: query
+          description: Data will be returned to this datetime | This field is optional. By providing no date it uses the date 1 day in the future | Only up to 1 day into the future can be requested
+          style: form
+          schema:
+            type: string
+            format: date-time
+          example: '2023-09-18'
+        - name: X-B2B-ID
+          in: header
+          description: Identifier of the business partner (B2B-ID) (Optional)
+          style: simple
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForecastViewModel'
+        '400':
+          description: Missing query data or wrong date format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /v1/now:
+    get:
       tags:
         - RegionStates
       summary: Returns current RegionState
       parameters:
-        - $ref: "#/components/parameters/ZipCode"
+        - name: zip
+          in: query
+          description: The zip code of the region where the data will be used
+          required: true
+          style: form
+          schema:
+            type: string
+        - name: X-B2B-ID
+          in: header
+          description: Identifier of the business partner (B2B-ID) (Optional)
+          style: simple
+          schema:
+            type: string
       responses:
-        "200":
+        '200':
           description: Successful operation
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/RegionStateNowViewModel"
+                $ref: '#/components/schemas/RegionStateNowViewModel'
   /v1/states:
     get:
-      operationId: getStates
-      description: |
-        Retrieval of the StromGedacht statuses in the TransnetBW control area for a specified 
-        time period at a specified location (zip code), whereby the status can be retrieved 
-        a maximum of 4 days into the past and a maximum of 2 days into the future.
       tags:
         - RegionStates
-      summary: Returns requested region states
+      summary: Returns requested region states by provided dates
       parameters:
-        - $ref: "#/components/parameters/ZipCode"
-        - $ref: "#/components/parameters/FromDateTime"
-        - $ref: "#/components/parameters/ToDateTime"
+        - name: zip
+          in: query
+          description: The zip code of the region where the data will be used
+          required: true
+          style: form
+          schema:
+            type: string
+        - name: from
+          in: query
+          description: Data will be returned from this datetime on | Only up to 4 days into the past can be requested
+          required: true
+          style: form
+          schema:
+            type: string
+            format: date-time
+          example: '2024-04-09T00:00:00+02:00'
+        - name: to
+          in: query
+          description: Data will be returned to this datetime | Only up to 2 days into the future can be requested
+          required: true
+          style: form
+          schema:
+            type: string
+            format: date-time
+          example: '2024-04-15T23:59:59+02:00'
+        - name: X-B2B-ID
+          in: header
+          description: Identifier of the business partner (B2B-ID) (Optional)
+          style: simple
+          schema:
+            type: string
       responses:
-        "200":
+        '200':
           description: Successful operation
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/RegionStateRangeViewModel"
-        "400":
+                $ref: '#/components/schemas/RegionStateRangeViewModel'
+        '400':
           description: Missing query data or wrong date format
+  /v1/statesRelative:
+    get:
+      tags:
+        - RegionStates
+      summary: Returns requested region states by provided hours
+      parameters:
+        - name: zip
+          in: query
+          description: The zip code of the region where the data will be used
+          required: true
+          style: form
+          schema:
+            type: string
+        - name: hoursInFuture
+          in: query
+          description: Data will be returned to the provided amount of hours in future | Only up to 2 days into the future can be requested
+          required: true
+          style: form
+          schema:
+            type: integer
+            format: int32
+        - name: hoursInPast
+          in: query
+          description: Data will be returned from the provided amount of hours in past | This field is optional | Only up to 4 days into the past can be requested
+          style: form
+          schema:
+            type: integer
+            format: int32
+            default: 0
+        - name: X-B2B-ID
+          in: header
+          description: Identifier of the business partner (B2B-ID) (Optional)
+          style: simple
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegionStateRangeViewModel'
+        '400':
+          description: Missing query data or wrong date format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
 components:
-  parameters:
-    ZipCode:
-      name: zip
-      in: query
-      description: The zip code of the region where the data will be used
-      required: true
-      style: form
-      schema:
-        type: string
-    FromDateTime:
-      name: from
-      in: query
-      description: |
-        Data will be returned from this datetime on. 
-        Only up to 4 days into the past can be requested
-      required: true
-      style: form
-      schema:
-        type: string
-        format: date-time
-      example: "2023-05-02T00:00:00+02:00"
-    ToDateTime:
-      name: to
-      in: query
-      description: |
-        Data will be returned to this datetime 
-        Only up to 2 days into the future can be requested
-      required: true
-      style: form
-      schema:
-        type: string
-        format: date-time
-      example: "2023-05-08T23:59:59+02:00"
   schemas:
+    ForecastPointInTimeViewModel:
+      type: object
+      properties:
+        dateTime:
+          type: string
+          format: date-time
+        value:
+          type: number
+          format: double
+      additionalProperties: false
+    ForecastViewModel:
+      type: object
+      properties:
+        load:
+          type: array
+          items:
+            $ref: '#/components/schemas/ForecastPointInTimeViewModel'
+          nullable: true
+        renewableEnergy:
+          type: array
+          items:
+            $ref: '#/components/schemas/ForecastPointInTimeViewModel'
+          nullable: true
+        residualLoad:
+          type: array
+          items:
+            $ref: '#/components/schemas/ForecastPointInTimeViewModel'
+          nullable: true
+        superGreenThreshold:
+          type: array
+          items:
+            $ref: '#/components/schemas/ForecastPointInTimeViewModel'
+          nullable: true
+      additionalProperties: false
+    ProblemDetails:
+      type: object
+      properties:
+        type:
+          type: string
+          nullable: true
+        title:
+          type: string
+          nullable: true
+        status:
+          type: integer
+          format: int32
+          nullable: true
+        detail:
+          type: string
+          nullable: true
+        instance:
+          type: string
+          nullable: true
+      additionalProperties: { }
     RegionState:
+      enum:
+        - 1
+        - 2
+        - 3
+        - 4
+        - -1
+      x-enum-varnames:
+        - Green
+        - Yellow
+        - Orange
+        - Red
+        - SuperGreen
       type: integer
+      description: "<p>Possible values:</p>\n<ul>\n<li><b>1</b> = green</li>\n<li><b>2</b> = yellow</li>\n<li><b>3</b> = orange</li>\n<li><b>4</b> = red</li>\n<li><b>-1</b> = superGreen</li>\n</ul>\n"
       format: int32
-      enum: [1, 2, 3, 4]
-      x-enum-varnames: [green, yellow, orange, red]
-      description: |
-        Possible values:
-          1 = green (normal operation - you do not need to do anything else)
-          2 = yellow (bring consumption forward - use electricity now)
-          3 = orange (reduce consumption to save costs and CO2)
-          4 = red (reduce consumption to prevent power shortage)
     RegionStateNowViewModel:
       type: object
       properties:
         state:
-          $ref: "#/components/schemas/RegionState"
+          $ref: '#/components/schemas/RegionState'
       additionalProperties: false
-      required:
-        - state
     RegionStateRangeViewModel:
       type: object
       properties:
         states:
           type: array
           items:
-            $ref: "#/components/schemas/RegionStateViewModel"
+            $ref: '#/components/schemas/RegionStateViewModel'
+          nullable: true
       additionalProperties: false
-      required:
-        - states
     RegionStateViewModel:
       type: object
       properties:
@@ -122,9 +272,5 @@ components:
           type: string
           format: date-time
         state:
-          $ref: "#/components/schemas/RegionState"
+          $ref: '#/components/schemas/RegionState'
       additionalProperties: false
-      required:
-        - from
-        - to
-        - state

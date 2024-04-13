@@ -16,9 +16,9 @@ func TestClient_GetNow(t *testing.T) {
 		t.Fatal("now state is nil")
 	}
 
-	value := state.State
-	if value < 1 || 4 < value {
-		t.Fatalf("state enum value is out of bounds: 1 <= value <= 4: %v", value)
+	value := *state.State
+	if 4 < value && value != -1 {
+		t.Fatalf("state enum value is out of bounds: 1 <= value <= 4 or equal to -1: %v", value)
 	}
 }
 
@@ -45,9 +45,9 @@ func TestClient_GetStates(t *testing.T) {
 		t.Fatalf("states.States is nil for: from %s to %s", lb, ub)
 	}
 
-	for _, state := range states.States {
-		value := state.State
-		if value < 1 || 4 < value {
+	for _, state := range *states.States {
+		value := *state.State
+		if 4 < value && value != -1 {
 			t.Fatalf("state enum value is out of bounds: 1 <= value <= 4: %v", value)
 		}
 	}
