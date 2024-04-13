@@ -12,6 +12,10 @@ import (
 )
 
 var (
+	// DefaultDateFormat may be changed for the whole package to use a different format
+	// look in the time package for further information
+	DefaultDateFormat = "2006-01-02"
+
 	// DefaultDateTimeFormat may be changed for the whole package to use a different format
 	// look in the time package for further information
 	DefaultDateTimeFormat = "2006-01-02T15:04:05-07:00"
@@ -28,6 +32,7 @@ type Client struct {
 	client       *resty.Client
 	ctx          context.Context
 	timeFormat   string
+	dateFormat   string
 	zipCodeRegex *regexp.Regexp
 }
 
@@ -37,6 +42,7 @@ func New(opts ...Option) (*Client, error) {
 		apiUrl:        "https://api.stromgedacht.de/v1/",
 		httpClient:    &http.Client{},
 		timeFormat:    DefaultDateTimeFormat,
+		dateFormat:    DefaultDateFormat,
 		clientContext: context.Background(),
 		zipCodeRegex:  DefaultZipCodeRegex,
 		userAgent:     DefaultUserAgent,
@@ -53,6 +59,7 @@ func New(opts ...Option) (*Client, error) {
 			SetBaseURL(options.apiUrl).
 			SetHeader("User-Agent", options.userAgent),
 		timeFormat:   options.timeFormat,
+		dateFormat:   options.dateFormat,
 		zipCodeRegex: options.zipCodeRegex,
 	}
 
@@ -143,4 +150,38 @@ func (c *Client) GetStatesContext(ctx context.Context, zip string, from, to time
 		return &result, nil
 	}
 	return nil, fmt.Errorf("failed to get /states state: %s", string(resp.Body()))
+}
+
+func (c *Client) GetForecast(zip string, from, to *time.Time) (*api.ForecastViewModel, error) {
+	return c.GetForecastContext(c.ctx, zip, from, to)
+}
+
+func (c *Client) GetForecastContext(ctx context.Context, zip string, from, to *time.Time) (*api.ForecastViewModel, error) {
+	var result api.ForecastViewModel
+	if !c.zipCodeRegex.MatchString(zip) {
+		return nil, fmt.Errorf("invalid zip code: %s", zip)
+	}
+
+	req := c.client.R().
+		SetHeader("Accept", "application/json").
+		SetQueryParam("zip", zip).
+		SetContext(ctx).
+		SetResult(&result)
+
+	if from != nil {
+		req.SetQueryParam("from", (*from).Format(c.dateFormat))
+	}
+	if to != nil {
+		req.SetQueryParam("to", (*to).Format(c.dateFormat))
+	}
+
+	resp, err := req.Get("/forecast")
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.IsSuccess() {
+		return &result, nil
+	}
+	return nil, fmt.Errorf("failed to get /forecast: %s", string(resp.Body()))
 }

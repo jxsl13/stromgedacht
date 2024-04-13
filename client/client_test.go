@@ -52,3 +52,42 @@ func TestClient_GetStates(t *testing.T) {
 		}
 	}
 }
+
+func TestClient_GetForecast(t *testing.T) {
+	c, _ := New()
+
+	now := time.Now().In(time.UTC)
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	lb := today.AddDate(0, 0, -2)
+	ub := today.AddDate(0, 0, -1)
+	minDate := lb
+	maxDate := ub.AddDate(0, 0, 1)
+
+	forecast, err := c.GetForecast("68309", &lb, &ub)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if forecast == nil {
+		t.Fatalf("forecast is nil for: from %s to %s", lb, ub)
+	}
+	if forecast.Load == nil {
+		t.Fatalf("forecast.Load is nil for: from %s to %s", lb, ub)
+	}
+	if forecast.RenewableEnergy == nil {
+		t.Fatalf("forecast.RenewableEnergy is nil for: from %s to %s", lb, ub)
+	}
+	if forecast.ResidualLoad == nil {
+		t.Fatalf("forecast.ResidualLoad is nil for: from %s to %s", lb, ub)
+	}
+	if forecast.SuperGreenThreshold == nil {
+		t.Fatalf("forecast.SuperGreenThreshold is nil for: from %s to %s", lb, ub)
+	}
+
+	for _, load := range *forecast.Load {
+		dt := *load.DateTime
+		if dt.Before(minDate) || dt.After(maxDate) {
+			t.Fatalf("load value at %v is out of temporal bounds [%v, %v]", dt, minDate, maxDate)
+		}
+	}
+}
