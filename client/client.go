@@ -152,11 +152,17 @@ func (c *Client) GetStatesContext(ctx context.Context, zip string, from, to time
 	return nil, fmt.Errorf("failed to get /states state: %s", string(resp.Body()))
 }
 
-func (c *Client) GetForecast(zip string, from, to *time.Time) (*api.ForecastViewModel, error) {
+// GetForecast Retrieval of the StromGedacht forecast in the TransnetBW control area for a specified
+// time period at a specified location (zip code). Pass zero-time (time.Time{}) to fall back to API defaults for from and to parameters.
+// By providing no date, it uses the date 7 days ago. Only up to 7 days into the past can be requested.
+func (c *Client) GetForecast(zip string, from, to time.Time) (*api.ForecastViewModel, error) {
 	return c.GetForecastContext(c.ctx, zip, from, to)
 }
 
-func (c *Client) GetForecastContext(ctx context.Context, zip string, from, to *time.Time) (*api.ForecastViewModel, error) {
+// GetForecastContext Retrieval of the StromGedacht forecast in the TransnetBW control area for a specified
+// time period at a specified location (zip code). Pass zero-time (time.Time{}) to fall back to API defaults for from and to parameters.
+// By providing no date, it uses the date 7 days ago. Only up to 7 days into the past can be requested.
+func (c *Client) GetForecastContext(ctx context.Context, zip string, from, to time.Time) (*api.ForecastViewModel, error) {
 	var result api.ForecastViewModel
 	if !c.zipCodeRegex.MatchString(zip) {
 		return nil, fmt.Errorf("invalid zip code: %s", zip)
@@ -168,11 +174,11 @@ func (c *Client) GetForecastContext(ctx context.Context, zip string, from, to *t
 		SetContext(ctx).
 		SetResult(&result)
 
-	if from != nil {
-		req.SetQueryParam("from", (*from).Format(c.dateFormat))
+	if !from.IsZero() {
+		req.SetQueryParam("from", (from).Format(c.dateFormat))
 	}
-	if to != nil {
-		req.SetQueryParam("to", (*to).Format(c.dateFormat))
+	if !to.IsZero() {
+		req.SetQueryParam("to", (to).Format(c.dateFormat))
 	}
 
 	resp, err := req.Get("/forecast")

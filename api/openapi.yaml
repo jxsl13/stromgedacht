@@ -81,6 +81,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RegionStateNowViewModel'
+        '400':
+          description: Missing query data or wrong date format
   /v1/states:
     get:
       tags:
@@ -178,6 +180,9 @@ paths:
 components:
   schemas:
     ForecastPointInTimeViewModel:
+      required:
+        -  dateTime
+        -  value
       type: object
       properties:
         dateTime:
@@ -188,48 +193,44 @@ components:
           format: double
       additionalProperties: false
     ForecastViewModel:
+      required:
+        - load
+        - renewableEnergy
+        - residualLoad
+        - superGreenThreshold
       type: object
       properties:
         load:
           type: array
           items:
             $ref: '#/components/schemas/ForecastPointInTimeViewModel'
-          nullable: true
         renewableEnergy:
           type: array
           items:
             $ref: '#/components/schemas/ForecastPointInTimeViewModel'
-          nullable: true
         residualLoad:
           type: array
           items:
             $ref: '#/components/schemas/ForecastPointInTimeViewModel'
-          nullable: true
         superGreenThreshold:
           type: array
           items:
             $ref: '#/components/schemas/ForecastPointInTimeViewModel'
-          nullable: true
       additionalProperties: false
     ProblemDetails:
       type: object
       properties:
         type:
           type: string
-          nullable: true
         title:
           type: string
-          nullable: true
         status:
           type: integer
           format: int32
-          nullable: true
         detail:
           type: string
-          nullable: true
         instance:
           type: string
-          nullable: true
       additionalProperties: { }
     RegionState:
       enum:
@@ -245,24 +246,31 @@ components:
         - Red
         - SuperGreen
       type: integer
-      description: "<p>Possible values:</p>\n<ul>\n<li><b>1</b> = green</li>\n<li><b>2</b> = yellow</li>\n<li><b>3</b> = orange</li>\n<li><b>4</b> = red</li>\n<li><b>-1</b> = superGreen</li>\n</ul>\n"
       format: int32
+      description: "<p>Possible values:</p>\n<ul>\n<li><b>1</b> = green</li>\n<li><b>2</b> = yellow</li>\n<li><b>3</b> = orange</li>\n<li><b>4</b> = red</li>\n<li><b>-1</b> = superGreen</li>\n</ul>\n"
     RegionStateNowViewModel:
+      required:
+        -  state
       type: object
       properties:
         state:
           $ref: '#/components/schemas/RegionState'
       additionalProperties: false
     RegionStateRangeViewModel:
+      required:
+        -  states
       type: object
       properties:
         states:
           type: array
           items:
             $ref: '#/components/schemas/RegionStateViewModel'
-          nullable: true
       additionalProperties: false
     RegionStateViewModel:
+      required:
+        -  from
+        -  to
+        -  state
       type: object
       properties:
         from:

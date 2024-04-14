@@ -16,7 +16,7 @@ func TestClient_GetNow(t *testing.T) {
 		t.Fatal("now state is nil")
 	}
 
-	value := *state.State
+	value := state.State
 	if 4 < value && value != -1 {
 		t.Fatalf("state enum value is out of bounds: 1 <= value <= 4 or equal to -1: %v", value)
 	}
@@ -45,8 +45,8 @@ func TestClient_GetStates(t *testing.T) {
 		t.Fatalf("states.States is nil for: from %s to %s", lb, ub)
 	}
 
-	for _, state := range *states.States {
-		value := *state.State
+	for _, state := range states.States {
+		value := state.State
 		if 4 < value && value != -1 {
 			t.Fatalf("state enum value is out of bounds: 1 <= value <= 4: %v", value)
 		}
@@ -63,7 +63,7 @@ func TestClient_GetForecast(t *testing.T) {
 	minDate := lb
 	maxDate := ub.AddDate(0, 0, 1)
 
-	forecast, err := c.GetForecast("68309", &lb, &ub)
+	forecast, err := c.GetForecast("68309", lb, ub)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -84,8 +84,8 @@ func TestClient_GetForecast(t *testing.T) {
 		t.Fatalf("forecast.SuperGreenThreshold is nil for: from %s to %s", lb, ub)
 	}
 
-	for _, load := range *forecast.Load {
-		dt := *load.DateTime
+	for _, load := range forecast.Load {
+		dt := load.DateTime
 		if dt.Before(minDate) || dt.After(maxDate) {
 			t.Fatalf("load value at %v is out of temporal bounds [%v, %v]", dt, minDate, maxDate)
 		}

@@ -20,25 +20,25 @@ const (
 
 // ForecastPointInTimeViewModel defines model for ForecastPointInTimeViewModel.
 type ForecastPointInTimeViewModel struct {
-	DateTime *time.Time `json:"dateTime,omitempty"`
-	Value    *float64   `json:"value,omitempty"`
+	DateTime time.Time `json:"dateTime"`
+	Value    float64   `json:"value"`
 }
 
 // ForecastViewModel defines model for ForecastViewModel.
 type ForecastViewModel struct {
-	Load                *[]ForecastPointInTimeViewModel `json:"load"`
-	RenewableEnergy     *[]ForecastPointInTimeViewModel `json:"renewableEnergy"`
-	ResidualLoad        *[]ForecastPointInTimeViewModel `json:"residualLoad"`
-	SuperGreenThreshold *[]ForecastPointInTimeViewModel `json:"superGreenThreshold"`
+	Load                []ForecastPointInTimeViewModel `json:"load"`
+	RenewableEnergy     []ForecastPointInTimeViewModel `json:"renewableEnergy"`
+	ResidualLoad        []ForecastPointInTimeViewModel `json:"residualLoad"`
+	SuperGreenThreshold []ForecastPointInTimeViewModel `json:"superGreenThreshold"`
 }
 
 // ProblemDetails defines model for ProblemDetails.
 type ProblemDetails struct {
-	Detail               *string                `json:"detail"`
-	Instance             *string                `json:"instance"`
-	Status               *int32                 `json:"status"`
-	Title                *string                `json:"title"`
-	Type                 *string                `json:"type"`
+	Detail               *string                `json:"detail,omitempty"`
+	Instance             *string                `json:"instance,omitempty"`
+	Status               *int32                 `json:"status,omitempty"`
+	Title                *string                `json:"title,omitempty"`
+	Type                 *string                `json:"type,omitempty"`
 	AdditionalProperties map[string]interface{} `json:"-"`
 }
 
@@ -62,17 +62,17 @@ type RegionStateNowViewModel struct {
 	// <li><b>4</b> = red</li>
 	// <li><b>-1</b> = superGreen</li>
 	// </ul>
-	State *RegionState `json:"state,omitempty"`
+	State RegionState `json:"state"`
 }
 
 // RegionStateRangeViewModel defines model for RegionStateRangeViewModel.
 type RegionStateRangeViewModel struct {
-	States *[]RegionStateViewModel `json:"states"`
+	States []RegionStateViewModel `json:"states"`
 }
 
 // RegionStateViewModel defines model for RegionStateViewModel.
 type RegionStateViewModel struct {
-	From *time.Time `json:"from,omitempty"`
+	From time.Time `json:"from"`
 
 	// State <p>Possible values:</p>
 	// <ul>
@@ -82,8 +82,8 @@ type RegionStateViewModel struct {
 	// <li><b>4</b> = red</li>
 	// <li><b>-1</b> = superGreen</li>
 	// </ul>
-	State *RegionState `json:"state,omitempty"`
-	To    *time.Time   `json:"to,omitempty"`
+	State RegionState `json:"state"`
+	To    time.Time   `json:"to"`
 }
 
 // GetV1ForecastParams defines parameters for GetV1Forecast.
