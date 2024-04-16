@@ -14,6 +14,7 @@ type clientOptions struct {
 	apiUrl        string
 	httpClient    *http.Client
 	timeFormat    string
+	dateFormat    string
 	clientContext context.Context
 	zipCodeRegex  *regexp.Regexp
 	userAgent     string
