@@ -33,7 +33,7 @@ func main() {
     if err != nil {
         panic(err)
     }
-    
+
     stateStr, _ := json.MarshalIndent(state, "", " ")
     fmt.Println(string(stateStr))  // { "state": -1 }
 
@@ -42,12 +42,12 @@ func main() {
     if err != nil {
         panic(err)
     }
-    
+
     loadStr, _ := json.MarshalIndent(forecast.Load[0], "", " ")
     residualLoadStr, _ := json.MarshalIndent(forecast.ResidualLoad[0], "", " ")
     renewableEnergyStr, _ := json.MarshalIndent(forecast.RenewableEnergy[0], "", " ")
     superGreenThresholdStr, _ := json.MarshalIndent(forecast.SuperGreenThreshold[0], "", " ")
-    
+
     fmt.Println(string(loadStr))  // { "dateTime": "2024-04-14T00:00:00Z", "value": 4207 }
     fmt.Println(string(residualLoadStr))  // { "dateTime": "2024-04-14T00:00:00Z", "value": 2511.419 }
     fmt.Println(string(renewableEnergyStr))// { "dateTime": "2024-04-14T00:00:00Z", "value": 1695.581 }
